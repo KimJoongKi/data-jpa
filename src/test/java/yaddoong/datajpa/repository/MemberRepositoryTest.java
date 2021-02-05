@@ -9,6 +9,8 @@ import yaddoong.datajpa.dto.MemberDto;
 import yaddoong.datajpa.entity.Member;
 import yaddoong.datajpa.entity.Team;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -126,6 +128,18 @@ class MemberRepositoryTest {
         List<MemberDto> dtoList = memberRepository.findMemberDto();
         dtoList.stream().forEach(System.out::println);
 
+    }
+
+    @Test
+    public void param경험해보기() {
+
+        Member m1 = new Member("AAA", 10);
+        Member m2 = new Member("AAA", 20);
+        memberRepository.save(m1);
+        memberRepository.save(m2);
+
+        List<Member> byNames = memberRepository.findByNames(Arrays.asList("AAA", "BBB"));
+        byNames.stream().forEach(System.out::println);
     }
     
         
