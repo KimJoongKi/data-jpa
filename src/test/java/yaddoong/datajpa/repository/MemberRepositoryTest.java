@@ -13,6 +13,8 @@ import yaddoong.datajpa.dto.MemberDto;
 import yaddoong.datajpa.entity.Member;
 import yaddoong.datajpa.entity.Team;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -28,6 +30,8 @@ class MemberRepositoryTest {
     @Autowired
     MemberRepository memberRepository;
     @Autowired TeamRepository teamRepository;
+    @PersistenceContext
+    EntityManager entityManager;
 
     @Test
     public void testMember() {
@@ -155,7 +159,6 @@ class MemberRepositoryTest {
         memberRepository.save(m2);
         Optional<Member> findMember = memberRepository.findOptionalByUsername("AAAA");
         System.out.println("findMember = " + findMember);
-
     }
 
     @Test
@@ -186,6 +189,54 @@ class MemberRepositoryTest {
 //        assertThat(page.getTotalPages()).isEqualTo(2);
         assertThat(page.isFirst()).isTrue();
         assertThat(page.hasNext()).isTrue();
+    }
+
+    @Test
+    public void 벌크업데이트() {
+        memberRepository.save(new Member("member1", 10));
+        memberRepository.save(new Member("member2", 19));
+        memberRepository.save(new Member("member3", 20));
+        memberRepository.save(new Member("member4", 21));
+        memberRepository.save(new Member("member5", 40));
+
+        int resultCount = memberRepository.bulkAgePlus(20);
+
+//        entityManager.clear();
+        List<Member> result = memberRepository.findByUsername("member5");
+        Member member = result.get(0);
+        System.out.println("member = " + member);
+
+        assertThat(resultCount).isEqualTo(3);
+    }
+
+    @Test
+    public void findMemberLazy() {
+        //given
+        //member1 -> teamA
+        //member2 -> teamB
+        Team teamA = new Team("teamA");
+        Team teamB = new Team("teamB");
+        teamRepository.save(teamA);
+        teamRepository.save(teamB);
+        Member member1 = new Member("member1", 10, teamA);
+        Member member2 = new Member("member2", 10, teamB);
+        memberRepository.save(member1);
+        memberRepository.save(member2);
+
+        entityManager.flush();
+        entityManager.clear();
+
+        //when
+        List<Member> all = memberRepository.findEntityGraphByUsername("member1");
+
+        all.stream()
+                .forEach(a ->
+                        {
+                            System.out.println("a.getUsername() = " + a.getUsername());
+                            System.out.println("a.getTeam() = " + a.getTeam().getClass());
+                            System.out.println("a.getTeam().getName() = " + a.getTeam().getName());
+                        }
+                );
 
 
     }
