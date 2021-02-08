@@ -273,9 +273,53 @@ class MemberRepositoryTest {
     public void callCustom() {
         List<Member> result = memberRepository.findMemberCustom();
     }
-    
-        
-        
-    
+
+    @Test
+    public void 프로젝션스() {
+        //given
+        Team teamA = new Team("teamA");
+        entityManager.persist(teamA);
+
+        Member m1 = new Member("m1", 0, teamA);
+        Member m2 = new Member("m2", 0, teamA);
+
+        entityManager.persist(m1);
+        entityManager.persist(m2);
+
+        entityManager.flush();
+        entityManager.clear();
+
+        //when
+        List<NestedClosedProjections> result = memberRepository.findProjectionsByUsername("m1", NestedClosedProjections.class);
+
+        for (NestedClosedProjections usernameOnly : result) {
+            System.out.println("usernameOnly = " + usernameOnly.getUsername());
+            System.out.println(" = " + usernameOnly.getTeam().getName());
+        }
+
+    }
+
+    @Test
+    public void 네이티브쿼리() {
+        Team teamA = new Team("teamA");
+        entityManager.persist(teamA);
+
+        Member m1 = new Member("m1", 0, teamA);
+        Member m2 = new Member("m2", 0, teamA);
+
+        entityManager.persist(m1);
+        entityManager.persist(m2);
+
+        entityManager.flush();
+        entityManager.clear();
+
+        Page<MemberProjection> result = memberRepository.findByNativeProjection(PageRequest.of(0, 10));
+        List<MemberProjection> content = result.getContent();
+        for (MemberProjection memberProjection : content) {
+            System.out.println("memberProjection = " + memberProjection.getUsername());
+            System.out.println("memberProjection = " + memberProjection.getTeamName());
+        }
+    }
+
 
 }
